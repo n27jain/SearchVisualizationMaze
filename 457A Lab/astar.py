@@ -1,3 +1,4 @@
+
 from maze1blackspots import blackspots
 from PIL import Image, ImageDraw
 import sys
@@ -27,6 +28,13 @@ def createImage(x,y,start,goal,visited,imageList):
         imageList.append(im)
     return im
 
+def createFrame(image, newPixel, imageList):
+    newImage = image.copy()
+    pixels = newImage.load()
+    pixels[newPixel] = (255,0,0)
+    imageList.append(newImage)
+    return newImage
+
 def saveImage(image):
     out = image.transpose(Image.FLIP_TOP_BOTTOM)
     out.show()
@@ -49,6 +57,17 @@ def createFrame(image, newPixel, imageList):
     return newImage
  
  #manhattan time!
+
+def saveGif(imageList, name, grid_y,grid_x):
+    
+    # image = imageList[0].transpose(Image.FLIP_TOP_BOTTOM)
+    # image.show()
+    for i in range(len(imageList)):
+        imageList[i] = imageList[i].transpose(Image.FLIP_TOP_BOTTOM)
+        # out = image.resize((grid_y*5,grid_x*5))
+    imageList[0].save(name, format='GIF',
+               append_images=imageList[1:], save_all=True, duration=10, loop=0)
+
 
 def investigate(childPoint,parentPoint,gP,open,closed,nodes,newG):
 # if goal is reached
@@ -75,10 +94,11 @@ def investigate(childPoint,parentPoint,gP,open,closed,nodes,newG):
             newNode.parent = parentPoint
             nodes[childPoint[0]][childPoint[1]] = newNode
             open.add(childPoint)
+    return False
 
-def AStar(open,closed,nodes,gP,grid_y,grid_x):
+def AStar(open,closed,nodes,gP,grid_y,grid_x,image,imageList):
     while open: # while we have nodes to check out
-        print(open)
+        # print(open)
         #find node of least current cost
         scoreMin = sys.maxsize
         nodeToExpand = Node
@@ -87,8 +107,7 @@ def AStar(open,closed,nodes,gP,grid_y,grid_x):
             if(node.cost < scoreMin):
                 nodeToExpand = node
                 scoreMin = node.cost
-        
-        print(nodeToExpand.cor)
+        image = createFrame(image, nodeToExpand.cor, imageList)
         #pop this node from open to closed
         closed.add(nodeToExpand.cor)
     
@@ -96,131 +115,30 @@ def AStar(open,closed,nodes,gP,grid_y,grid_x):
         newG = nodeToExpand.g + 1
         parentPoint = nodeToExpand.cor
 
+        if(parentPoint == (24,23)): shouldWork = True
+
         #check all of the childern and add them to open list if they are not in closed list
         #child right
         childPoint = (parentPoint[0]+1, parentPoint[1])
-        
-        # if goal is reached
-        if(childPoint == gP ):
-            nodes[childPoint[0]][childPoint[1]].parent = parentPoint
-            return True
-        
         if(childPoint[0] < grid_x): # make sure we are not out of bounds
-    
-            # make sure the node is not in the closed list
-            if(not (childPoint in closed)):
-                
-                #if it exists in the open list then we need to compare current with old
-                if(childPoint in open):
-                    
-                    # and if it does, then compare current score with old score
-                    childNode = nodes[childPoint[0]][childPoint[1]]
-                    if(childNode.g > newG):
-                        newNode = Node(childPoint,gP)
-                        newNode.g = newG
-                        newNode.cost = newNode.g + newNode.h
-                        newNode.parent = parentPoint
-                        nodes[childPoint[0]][childPoint[1]] = newNode
-                    # leave it in the open pile no need to add it back
-                else: #otherwise we need to add it to the open list as well
-                  
-                    newNode = Node(childPoint,gP)
-                    newNode.g = newG
-                    newNode.cost = newNode.g + newNode.h
-                    newNode.parent = parentPoint
-                    nodes[childPoint[0]][childPoint[1]] = newNode
-                    open.add(childPoint)
-        
+            if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                return True
+
         #child left
         childPoint = (parentPoint[0]-1, parentPoint[1])
-
-        # if goal is reached
-        if(childPoint == gP ):
-            nodes[childPoint[0]][childPoint[1]].parent = parentPoint
-            return True
-        
         if(childPoint[0] >= 0): # make sure we are not out of bounds
-            # make sure the node is not in the closed list
-            if(not (childPoint in closed)):
-                #if it exists in the open list then we need to compare current with old
-                if(childPoint in open):
-                    # and if it does, then compare current score with old score
-                    childNode = nodes[childPoint[0]][childPoint[1]]
-                    if(childNode.g > newG):
-                        newNode = Node(childPoint,gP)
-                        newNode.g = newG
-                        newNode.cost = newNode.g + newNode.h
-                        newNode.parent = parentPoint
-                        nodes[childPoint[0]][childPoint[1]] = newNode
-                    # leave it in the open pile no need to add it back
-            else: #otherwise we need to add it to the open list as well
-                newNode = Node(childPoint,gP)
-                newNode.g = newG
-                newNode.cost = newNode.g + newNode.h
-                newNode.parent = parentPoint
-                nodes[childPoint[0]][childPoint[1]] = newNode
-                open.add(childPoint)
-                 
-
+            if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                return True
         #child up
         childPoint = (parentPoint[0], parentPoint[1]+1)
-
-        # if goal is reached
-        if(childPoint == gP ):
-            nodes[childPoint[0]][childPoint[1]].parent = parentPoint
-            return True
-        
         if(childPoint[1] < grid_y): # make sure we are not out of bounds
-            # make sure the node is not in the closed list
-            if(not (childPoint in closed)):
-                #if it exists in the open list then we need to compare current with old
-                if(childPoint in open):
-                    # and if it does, then compare current score with old score
-                    childNode = nodes[childPoint[0]][childPoint[1]]
-                    if(childNode.g > newG):
-                        newNode = Node(childPoint,gP)
-                        newNode.g = newG
-                        newNode.cost = newNode.g + newNode.h
-                        newNode.parent = parentPoint
-                        nodes[childPoint[0]][childPoint[1]] = newNode
-                    # leave it in the open pile no need to add it back
-            else: #otherwise we need to add it to the open list as well
-                newNode = Node(childPoint,gP)
-                newNode.g = newG
-                newNode.cost = newNode.g + newNode.h
-                newNode.parent = parentPoint
-                nodes[childPoint[0]][childPoint[1]] = newNode
-                open.add(childPoint)
-                          
+            if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                return True   
         #child down
         childPoint = (parentPoint[0], parentPoint[1]-1)
-
-        # if goal is reached
-        if(childPoint == gP ):
-            nodes[childPoint[0]][childPoint[1]].parent = parentPoint
-            return True
-        
         if(childPoint[1] >= 0): # make sure we are not out of bounds
-            # make sure the node is not in the closed list
-            if(not (childPoint in closed)):
-                #if it exists in the open list then we need to compare current with old
-                if(childPoint in open):
-                    # and if it does, then compare current score with old score
-                    childNode = nodes[childPoint[0]][childPoint[1]]
-                    if(childNode.g > newG):
-                        newNode = Node(childPoint,gP)
-                        newNode.g = newG
-                        newNode.cost = newNode.g + newNode.h
-                        newNode.parent = parentPoint
-                        nodes[childPoint[0]][childPoint[1]] = newNode
-                    # leave it in the open pile no need to add it back
-            else: #otherwise we need to add it to the open list as well
-                newNode = Node(childPoint,gP)
-                newNode.g = newG
-                newNode.cost = newNode.g + newNode.h
-                newNode.parent = parentPoint
-                nodes[childPoint[0]][childPoint[1]] = newNode
-                open.add(childPoint)
+             if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                    return True
 
 
 
@@ -234,9 +152,8 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
     closed = set() # these are the closed nodes
     nodes = []
 
-
-    for pixel in blackspots:
-        closed.add(pixel)
+    imageList = []
+    image = createImage(grid_x,grid_y,sP,gP,closed,imageList)
     
     for i in range(grid_x):
         row = []
@@ -247,7 +164,9 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
 
     nodes[sPX][sPY].cost = nodes[sPX][sPY].g + nodes[sPX][sPY].h
     open.add(sP)
-    found_sol = AStar(open,closed,nodes,gP,grid_y,grid_x)
+    found_sol = AStar(open,closed,nodes,gP,grid_y,grid_x,image,imageList)
+    print("here")
+    saveGif(imageList, "Astar_.gif", grid_y,grid_x)
     tupleListPath = []
 
     if(found_sol):
@@ -257,8 +176,8 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
         while parent:
             backup = parent
             tupleListPath.append(backup)
-            parent = nodes[gP[0]][gP[1]].parent
-
+            parent = nodes[backup[0]][backup[1]].parent
+        print("Here")
         while(tupleListPath):
             print(tupleListPath.pop())
     else:
@@ -266,4 +185,4 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
 
     # saveGif(imageList, "A*_"+title, grid_y,grid_x)
 
-runTest(25,25,2,11,23,19,"02_11_23_19.gif")
+runTest(25,25,0,0,24,24,"02_11_23_19.gif")

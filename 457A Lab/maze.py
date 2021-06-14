@@ -2,20 +2,22 @@
 
 from maze1blackspots import blackspots
 from PIL import Image, ImageDraw
+import sys
 
-def manhattanScore(p1,p2):
-    x1 = p1[0]
-    y1 = p1[1]
-    x2 = p2[0]
-    y2 = p2[1]
-    return abs(x1-x2) + abs(y1-y2)
+
 
 class Node:
-    def __init__(self,point,goal,g):
-        self.coordinate = point
-        self.g = g
-        self.h = manhattanScore(point,goal)
-        self.cost = self.g + self.h
+    def __init__(self,point,goal):
+        self.cor = point
+        self.g = 0
+        #manhattanScore
+        x1 = self.cor[0]
+        y1 = self.cor[1]
+        x2 = goal[0]
+        y2 = goal[1]
+        self.h = abs(x1-x2) + abs(y1-y2)
+        self.cost = 0
+        self.parent = None
 
     
 def createImage(x,y,start,goal,visited,imageList):
@@ -177,54 +179,76 @@ def depth_first(queue,endpoint,visited, im, imageList,parents,grid_y,grid_x):
     return False
 
 
-def AStar(queue,endpoint,visited, im, imageList,parents,grid_y,grid_x):
-
-    while queue: 
-
-        # pop from queue that has node of least cost
-        scoreMin = int('inf')
-        nodeToExpand = None
-        for node in queue: 
-            if node.g + node.h < scoreMin:
+def AStar(open,closed,nodes,gP,grid_y,grid_x,image,imageList):
+    while open: # while we have nodes to check out
+        # print(open)
+        #find node of least current cost
+        scoreMin = sys.maxsize
+        nodeToExpand = Node
+        for cor in open: 
+            node = nodes[cor[0]][cor[1]]
+            if(node.cost < scoreMin):
                 nodeToExpand = node
-                scoreMin =  node.g + node.h
-        
-        # once we have the node with the least score in the queue, we must pop it and then check it's childern
-        queue.pop(nodeToExpand)
-        newG = nodeToExpand.g + 1 # increase actual distance score by 1 
-        parentPoint = nodeToExpand.coordinate
+                scoreMin = node.cost
+        image = createFrame(image, nodeToExpand.cor, imageList)
+        #pop this node from open to closed
+        closed.add(nodeToExpand.cor)
+    
+        open.remove(nodeToExpand.cor)
+        newG = nodeToExpand.g + 1
+        parentPoint = nodeToExpand.cor
 
+        if(parentPoint == (24,23)): shouldWork = True
+
+        #check all of the childern and add them to open list if they are not in closed list
         #child right
         childPoint = (parentPoint[0]+1, parentPoint[1])
-        if(childPoint == endpoint): # if this is the goal node set the parent of the goal node to this node
-            parents[childPoint[0]][childPoint[1]] = nodeToExpand.coordinate
-            return True
         if(childPoint[0] < grid_x): # make sure we are not out of bounds
-            # check the visted list to see if our node already exists
-            foundNode  = None
-            for node in visited:
-                if node.coordinate == childPoint: 
-                    foundNode = Node
-            if(foundNode):# if the child node is in our visited list...
-                #if the oldcost is more that the newcost we should update it
-                childNode = Node(childPoint,endpoint,newG)
-                if(foundNode.cost > childNode.cost):
-                    visited.pop(foundNode)
-                    visited.a
-                im = createFrame(image=im,newPixel=childPoint, imageList=imageList)
-                queue.append(childNode)
+            if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                return True
 
         #child left
-        childPoint = (parentPoint[0]+1, parentPoint[1])
+        childPoint = (parentPoint[0]-1, parentPoint[1])
+        if(childPoint[0] >= 0): # make sure we are not out of bounds
+            if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                return True
+        #child up
+        childPoint = (parentPoint[0], parentPoint[1]+1)
+        if(childPoint[1] < grid_y): # make sure we are not out of bounds
+            if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                return True   
         #child down
         childPoint = (parentPoint[0], parentPoint[1]-1)
-        #child up
-        childPoint = (parentPoint[0]+1, parentPoint[1]+1)
+        if(childPoint[1] >= 0): # make sure we are not out of bounds
+             if (investigate(childPoint,parentPoint,gP,open,closed,nodes,newG) ):
+                    return True
 
-
-        continue
-
-
+def investigate(childPoint,parentPoint,gP,open,closed,nodes,newG):
+    # if goal is reached
+    if(childPoint == gP ):
+        nodes[childPoint[0]][childPoint[1]].parent = parentPoint
+        return True
+    # make sure the node is not in the closed list
+    if(not (childPoint in closed)):
+        #if it exists in the open list then we need to compare current with old
+        if(childPoint in open):
+            # and if it does, then compare current score with old score
+            childNode = nodes[childPoint[0]][childPoint[1]]
+            if(childNode.g > newG):
+                newNode = Node(childPoint,gP)
+                newNode.g = newG
+                newNode.cost = newNode.g + newNode.h
+                newNode.parent = parentPoint
+                nodes[childPoint[0]][childPoint[1]] = newNode
+            # leave it in the open pile no need to add it back
+        else: #otherwise we need to add it to the open list as well
+            newNode = Node(childPoint,gP)
+            newNode.g = newG
+            newNode.cost = newNode.g + newNode.h
+            newNode.parent = parentPoint
+            nodes[childPoint[0]][childPoint[1]] = newNode
+            open.add(childPoint)
+    return False
 
 
 
@@ -241,7 +265,6 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
 
     #create 2d array of parents for each node child
     parents = []
-    manScore = []
     for i in range(grid_x):
         row = []
         for j in range(grid_y):
@@ -254,14 +277,12 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
     
     #BFS
     #duplicate the data from above to reuse again later
-    imageCopy = image.copy()
-    newImageList = imageList
     newParents = parents
     newVisited = visited # hasmap set for faster searching 
     newQueue = queue # a simple list that will not have many items 
 
 
-    found_sol = breath_first(newQueue,gP,newVisited, imageCopy, newImageList,newParents,grid_y,grid_x)
+    found_sol = breath_first(newQueue,gP,newVisited, image, imageList,newParents,grid_y,grid_x)
     tupleListPath = []
     if(found_sol):
         tupleListPath.append((gP[0],gP[1]))
@@ -278,16 +299,16 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
 
     saveGif(imageList, "BFS_"+title, grid_y,grid_x)
 
-    #DFS TIME!
+    #DFS
 
     #cleanup vars for DFS
-    imageCopy = image.copy()
-    newImageList = imageList
+    imageList2 = []
+    image2 = createImage(grid_x,grid_y,sP,gP,visited,imageList)
     newParents = parents
     newVisited = visited # hasmap set for faster searching 
     newQueue = queue # a simple list that will not have many items 
     
-    found_sol = depth_first(newQueue,gP,newVisited, imageCopy, newImageList,newParents,grid_y,grid_x)
+    found_sol = depth_first(newQueue,gP,newVisited, image2, imageList2,newParents,grid_y,grid_x)
     tupleListPath = []
     if(found_sol):
         tupleListPath.append((gP[0],gP[1]))
@@ -302,39 +323,44 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
         while(tupleListPath):
             print(tupleListPath.pop())
 
-    saveGif(imageList, "DFS_"+title, grid_y,grid_x)
+    saveGif(imageList2, "DFS_"+title, grid_y,grid_x)
     
 
-    #manhattan time!
+    #Astar
+
+    open = set() # this is the list if nodes that are open
+    closed = set() # these are the closed nodes
+    nodes = []
 
     imageCopy = image.copy()
     newImageList = imageList
-    newParents = parents
+    for i in range(grid_x):
+        row = []
+        for j in range(grid_y):
+            newNode = Node((i,j),gP)
+            row.append(newNode)
+        nodes.append(row)
 
-    newVisited = set() # hasmap set for faster searching 
-    newQueue = [] 
-    #add nodes instead of regular coordinates
-    startNode = Node(sP,gP,0)
-
-    newVisited.add(startNode)
-    newQueue.append(startNode)
-
-    found_sol = AStar(newQueue,gP,newVisited, imageCopy, newImageList,newParents,grid_y,grid_x)
+    nodes[sPX][sPY].cost = nodes[sPX][sPY].g + nodes[sPX][sPY].h
+    open.add(sP)
+    found_sol = AStar(open,closed,nodes,gP,grid_y,grid_x,imageCopy,newImageList)
+    saveGif(imageList, "Astar_"+title, grid_y,grid_x)
     tupleListPath = []
 
     if(found_sol):
         tupleListPath.append((gP[0],gP[1]))
-        parent = parents[gP[0]][gP[1]]
+        parent = nodes[gP[0]][gP[1]].parent
         backup = parent
         while parent:
             backup = parent
             tupleListPath.append(backup)
-            parent = parents[parent[0]][parent[1]]
-
+            parent = nodes[backup[0]][backup[1]].parent
         while(tupleListPath):
             print(tupleListPath.pop())
+    else:
+        print("failed")
 
-    saveGif(imageList, "A*_"+title, grid_y,grid_x)
+    # saveGif(imageList, "A*_"+title, grid_y,grid_x)
 
 
 
