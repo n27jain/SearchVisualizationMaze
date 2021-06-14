@@ -248,10 +248,8 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
 
     sP = (sPX,sPY)
     gP = (gPX,gPY)
-
     visited = set() # hasmap set for faster searching 
     queue = [] # a simple list that will not have many items 
-
     visited.add(sP)
     queue.append(sP) 
 
@@ -264,19 +262,14 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
         parents.append(row)
     imageList = []
     image = createImage(grid_x,grid_y,sP,gP,visited,imageList)
-    numExplored = 0
-
-    
 
     #BFS
-
-    print(title ," BSF Running")
     
+    print(title ," BSF Running")
     found_sol = breath_first(queue,gP,visited, image, imageList,parents,grid_y,grid_x)
-    print("# of nodes explored: ", len(visited) + len(queue))
-    print()
     tupleListPath = []
     if(found_sol):
+        print("# of nodes explored: ", len(visited) + len(queue))
         tupleListPath.append((gP[0],gP[1]))
         parent = parents[gP[0]][gP[1]]
         
@@ -285,6 +278,12 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
             backup = parent
             tupleListPath.append(backup)
             parent = parents[parent[0]][parent[1]]
+        print("Cost: ", len(tupleListPath))
+        pathImageList = []
+        pathImage = createImage(grid_x,grid_y,sP,gP,visited ,pathImageList)
+        while(tupleListPath):
+            pathImage = createFrame(pathImage,tupleListPath.pop(-1), pathImageList)
+        saveGif(pathImageList, "BFS*_PATH_"+title, grid_y,grid_x)
     else: print("failed BFS_" + title)
 
         # while(tupleListPath):
@@ -292,20 +291,16 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
             # print(tupleListPath.pop())
 
     saveGif(imageList, "BFS_"+title, grid_y,grid_x)
-
+    print()
 
 
 
     #DFS
-
-    #cleanup vars for DFS
     print(title , "DFS Running")
     sP = (sPX,sPY)
     gP = (gPX,gPY)
-
     visited = set() # hasmap set for faster searching 
     queue = [] # a simple list that will not have many items 
-
     visited.add(sP)
     queue.append(sP) 
 
@@ -322,12 +317,10 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
     image = createImage(grid_x,grid_y,sP,gP,visited,imageList)
     
     found_sol = depth_first(queue,gP,visited, image, imageList,parents,grid_y,grid_x)
-    
-    print("# of nodes explored: ", len(visited))
-    print()
 
     tupleListPath = []
     if(found_sol):
+        print("# of nodes explored: ", len(visited))
         tupleListPath.append((gP[0],gP[1]))
         parent = parents[gP[0]][gP[1]]
         
@@ -336,6 +329,12 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
             backup = parent
             tupleListPath.append(backup)
             parent = parents[parent[0]][parent[1]]
+        print("Cost: ", len(tupleListPath))
+        pathImageList = []
+        pathImage = createImage(grid_x,grid_y,sP,gP,visited ,pathImageList)
+        while(tupleListPath):
+            pathImage = createFrame(pathImage,tupleListPath.pop(-1), pathImageList)
+        saveGif(pathImageList, "DFS*_PATH_"+title, grid_y,grid_x)
     else: print("failed DFS*_" + title)
         # while(tupleListPath):
         #     pass
@@ -343,6 +342,7 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
 
     saveGif(imageList, "DFS_"+title, grid_y,grid_x)
 
+    print()
 
 
 
@@ -369,13 +369,9 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
     nodes[sPX][sPY].cost = nodes[sPX][sPY].g + nodes[sPX][sPY].h
     open.add(sP)
     found_sol = AStar(open,closed,nodes,gP,grid_y,grid_x,image,imageList)
-    
-    print("# of nodes explored:", len(open) + len(closed))
-    print()
-
     tupleListPath = []
-
     if(found_sol):
+        print("# of nodes explored:", len(open) + len(closed))
         tupleListPath.append((gP[0],gP[1]))
         parent = nodes[gP[0]][gP[1]].parent
         backup = parent
@@ -383,12 +379,18 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
             backup = parent
             tupleListPath.append(backup)
             parent = nodes[backup[0]][backup[1]].parent
-        # while(tupleListPath):
-        #     print(tupleListPath.pop())
+        print("Cost: ", len(tupleListPath))
+
+        pathImageList = []
+        pathImage = createImage(grid_x,grid_y,sP,gP,closed,pathImageList)
+        while(tupleListPath):
+            pathImage = createFrame(pathImage,tupleListPath.pop(-1), pathImageList)
+        saveGif(pathImageList, "A*_PATH_"+title, grid_y,grid_x)
     else:
         print("failed A*_" + title)
-
+    
     saveGif(imageList, "A*_"+title, grid_y,grid_x)
+    print()
 
 #1.1 Starting at S (2,11) and ending at E1 (23,19)
 runTest(25,25,2,11,23,19,"02_11_23_19.gif")
