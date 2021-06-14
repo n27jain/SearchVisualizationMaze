@@ -6,18 +6,7 @@ import sys
 
 
 
-class Node:
-    def __init__(self,point,goal):
-        self.cor = point
-        self.g = 0
-        #manhattanScore
-        x1 = self.cor[0]
-        y1 = self.cor[1]
-        x2 = goal[0]
-        y2 = goal[1]
-        self.h = abs(x1-x2) + abs(y1-y2)
-        self.cost = 0
-        self.parent = None
+
 
     
 def createImage(x,y,start,goal,visited,imageList):
