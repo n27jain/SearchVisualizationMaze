@@ -281,9 +281,13 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
         print("Cost: ", len(tupleListPath))
         pathImageList = []
         pathImage = createImage(grid_x,grid_y,sP,gP,visited ,pathImageList)
+        flipTupleList = []
         while(tupleListPath):
-            pathImage = createFrame(pathImage,tupleListPath.pop(-1), pathImageList)
+            tuple = tupleListPath.pop(-1)
+            flipTupleList.append(tuple)
+            pathImage = createFrame(pathImage,tuple, pathImageList)
         saveGif(pathImageList, "BFS*_PATH_"+title, grid_y,grid_x)
+        print("path taken: ",flipTupleList )
     else: print("failed BFS_" + title)
 
         # while(tupleListPath):
@@ -332,9 +336,13 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
         print("Cost: ", len(tupleListPath))
         pathImageList = []
         pathImage = createImage(grid_x,grid_y,sP,gP,visited ,pathImageList)
+        flipTupleList = []
         while(tupleListPath):
-            pathImage = createFrame(pathImage,tupleListPath.pop(-1), pathImageList)
+            tuple = tupleListPath.pop(-1)
+            flipTupleList.append(tuple)
+            pathImage = createFrame(pathImage,tuple, pathImageList)
         saveGif(pathImageList, "DFS*_PATH_"+title, grid_y,grid_x)
+        print("path taken: ",flipTupleList )
     else: print("failed DFS*_" + title)
         # while(tupleListPath):
         #     pass
@@ -383,9 +391,13 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
 
         pathImageList = []
         pathImage = createImage(grid_x,grid_y,sP,gP,closed,pathImageList)
+        flipTupleList = []
         while(tupleListPath):
-            pathImage = createFrame(pathImage,tupleListPath.pop(-1), pathImageList)
+            tuple = tupleListPath.pop(-1)
+            flipTupleList.append(tuple)
+            pathImage = createFrame(pathImage,tuple, pathImageList)
         saveGif(pathImageList, "A*_PATH_"+title, grid_y,grid_x)
+        print("path taken: ",flipTupleList )
     else:
         print("failed A*_" + title)
     
