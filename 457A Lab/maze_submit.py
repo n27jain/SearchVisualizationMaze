@@ -191,8 +191,6 @@ def AStar(open,closed,nodes,gP,grid_y,grid_x,image,imageList):
         newG = nodeToExpand.g + 1
         parentPoint = nodeToExpand.cor
 
-        if(parentPoint == (24,23)): shouldWork = True
-
         #check all of the childern and add them to open list if they are not in closed list
         #child right
         childPoint = (parentPoint[0]+1, parentPoint[1])
@@ -404,9 +402,22 @@ def runTest(grid_x,grid_y,sPX,sPY,gPX,gPY, title):
     saveGif(imageList, "A*_"+title, grid_y,grid_x)
     print()
 
+
+
 #1.1 Starting at S (2,11) and ending at E1 (23,19)
 runTest(25,25,2,11,23,19,"02_11_23_19.gif")
 #1.2 Starting at S (2,11) and ending at E2 (2,21)
 runTest(25,25,2,11,2,21,"02_11_02_21.gif")
 #1.3 (0,0) - (24,24)
 runTest(25,25,0,0,24,24,"00_00_24_24.gif") 
+
+
+# your turn! Modify the coordinates bellow to run your own mystery simulation!
+
+startX = 0
+startY = 0
+
+goalX = 24
+goalY = 24
+
+runTest(25,25,startX,startY,goalX,goalY, str(startX)+ "_"+ str(startY) + "_"+  str(goalX) +"_"+  str(goalY) + ".gif") 
